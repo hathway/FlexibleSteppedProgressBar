@@ -46,6 +46,7 @@ import CoreGraphics
         }
         didSet {
 //            animationRendering = true
+            updateDefaultCenterCircles()
             self.setNeedsDisplay()
         }
     }
@@ -58,6 +59,9 @@ import CoreGraphics
             self.setNeedsDisplay()
         }
     }
+    
+    @objc open var defaultCenterColor: UIColor = UIColor.black
+    @objc open var defaultCenterRadius: CGFloat = 0.0
     
     @objc open var currentSelectedCenterColor: UIColor = UIColor.black
     @objc open var currentSelectedTextColor: UIColor!
@@ -214,6 +218,8 @@ import CoreGraphics
     
     //MARK: - Private properties
     
+    fileprivate var circleLayers: [CAShapeLayer] = []
+    
     fileprivate var backgroundLayer = CAShapeLayer()
     
     fileprivate var progressLayer = CAShapeLayer()
@@ -236,7 +242,7 @@ import CoreGraphics
     
     fileprivate var maskLayer = CAShapeLayer()
     
-    fileprivate var centerPoints = [CGPoint]()
+    public var centerPoints = [CGPoint]()
     
     fileprivate var _textLayers = [Int:CATextLayer]()
     
@@ -406,6 +412,8 @@ import CoreGraphics
         self.renderTopTextIndexes()
         self.renderBottomTextIndexes()
         self.renderTextIndexes()
+        
+        self.addDefaultCenterCircles()
         
         let progressCenterPoints = Array<CGPoint>(centerPoints[0..<(completedTillIndex+1)])
         
@@ -774,4 +782,41 @@ import CoreGraphics
         }
     }
     
+    func circlePathWithCenter(center: CGPoint, radius: CGFloat) -> UIBezierPath {
+        let circlePath = UIBezierPath()
+        circlePath.addArc(withCenter: center, radius: radius, startAngle: -CGFloat(Double.pi), endAngle: -CGFloat(Double.pi/2), clockwise: true)
+        circlePath.addArc(withCenter: center, radius: radius, startAngle: -CGFloat(Double.pi/2), endAngle: 0, clockwise: true)
+        circlePath.addArc(withCenter: center, radius: radius, startAngle: 0, endAngle: CGFloat(Double.pi/2), clockwise: true)
+        circlePath.addArc(withCenter: center, radius: radius, startAngle: CGFloat(Double.pi/2), endAngle: CGFloat(Double.pi), clockwise: true)
+        circlePath.close()
+        return circlePath
+    }
+    
+    func addDefaultCenterCircles() {
+        for i in 0...(numberOfPoints - 1) {
+            if i <= currentIndex {
+                continue
+            }
+            
+            let point = centerPoints[i]
+            let circle = CAShapeLayer()
+            circle.path = circlePathWithCenter(center: point, radius: defaultCenterRadius).cgPath
+            circle.fillColor = defaultCenterColor.cgColor
+            self.layer.addSublayer(circle)
+            self.circleLayers.append(circle)
+        }
+    }
+    
+    func removeDefaultCenterCircles() {
+        for circle in circleLayers {
+            circle.removeFromSuperlayer()
+        }
+        
+        self.circleLayers.removeAll()
+    }
+    
+    func updateDefaultCenterCircles() {
+        removeDefaultCenterCircles()
+        addDefaultCenterCircles()
+    }
 }
