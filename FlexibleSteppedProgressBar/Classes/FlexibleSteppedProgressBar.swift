@@ -798,12 +798,14 @@ import CoreGraphics
                 continue
             }
             
-            let point = centerPoints[i]
-            let circle = CAShapeLayer()
-            circle.path = circlePathWithCenter(center: point, radius: defaultCenterRadius).cgPath
-            circle.fillColor = defaultCenterColor.cgColor
-            self.layer.addSublayer(circle)
-            self.circleLayers.append(circle)
+            if i < centerPoints.count {
+                let point = centerPoints[i]
+                let circle = CAShapeLayer()
+                circle.path = circlePathWithCenter(center: point, radius: defaultCenterRadius).cgPath
+                circle.fillColor = defaultCenterColor.cgColor
+                self.layer.addSublayer(circle)
+                self.circleLayers.append(circle)
+            }
         }
     }
     
